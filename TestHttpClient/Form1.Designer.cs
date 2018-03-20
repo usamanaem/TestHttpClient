@@ -87,7 +87,7 @@
             this.ddlProviderType.FormattingEnabled = true;
             this.ddlProviderType.Items.AddRange(new object[] {
             "Hospitals",
-            "Hospitals"});
+            "Doctors and Health Practitioners"});
             this.ddlProviderType.Location = new System.Drawing.Point(475, 24);
             this.ddlProviderType.Name = "ddlProviderType";
             this.ddlProviderType.Size = new System.Drawing.Size(121, 21);

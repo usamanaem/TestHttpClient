@@ -19,16 +19,61 @@ namespace TestHttpClient
         public Form1()
         {
             InitializeComponent();
-            GetCountryList();
+            Task.Run(async () => { await GetCountryList(); }
+
+                ).Wait();
+
+
+            BindProviderType();
+        }
+
+        private void BindProviderType()
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Title", typeof(string));
+            dt.Columns.Add("Value", typeof(string));
+
+            dt.Rows.Add("Hospitals", "HOSPITALS");
+            dt.Rows.Add("Doctors and Health Practitioners", "PRACTITIONERS");
+            ddlProviderType.DisplayMember = "Title";
+            ddlProviderType.ValueMember = "Value";
+            ddlProviderType.DataSource = dt;
 
         }
 
         private void btnGetProviders_Click(object sender, EventArgs e)
         {
-
+            GetProvidersList();
 
         }
-        private void GetCountryList()
+
+        private void GetProvidersList()
+        {
+            string urlValue = ddlCountry.SelectedValue.ToString();
+            string Country = ddlCountry.Text;
+            string cityValue = ddlCity.SelectedValue.ToString();
+            string ProvidrTypeValue = ddlProviderType.SelectedValue.ToString();
+            string URLVal = "https://apps.allianzworldwidecare.com/poi/hospital-doctor-and-health-practitioner-finder?TRANS=Hospitals%2C+Doctors+and+Health+Practitioners+in+" + cityValue + "%2C" + Country + "&CON=World&COUNTRY=" + Country + "&CITY=" + cityValue + "&PROVTYPE=" + ProvidrTypeValue;
+
+            // string url = "https://apps.allianzworldwidecare.com/poi/" + HttpUtility.HtmlDecode(urlValue) + "&City=" + cityValue + "&PROVTYPE=" + ProvidrTypeValue;
+
+
+            HtmlAgilityPack.HtmlWeb web = new HtmlAgilityPack.HtmlWeb();
+            HtmlAgilityPack.HtmlDocument doc = web.Load(URLVal);
+
+
+
+
+            HtmlAgilityPack.HtmlNodeCollection ProviderListNodes = doc.DocumentNode.SelectNodes("//table[@class='table']");
+            lstValues.Items.Clear();
+
+            foreach (var node in ProviderListNodes)
+            {
+                lstValues.Items.Add(HttpUtility.HtmlDecode(node.ChildNodes[1].InnerText.Trim()));
+            }
+        }
+
+        private async Task GetCountryList()
         {
             string url = "https://apps.allianzworldwidecare.com/poi/hospital-doctor-and-health-practitioner-finder?TRANS=Hospitals%2C+Doctors+and+Health+Practitioners+in+Qatar";
 
@@ -50,35 +95,43 @@ namespace TestHttpClient
             ddlCountry.DataSource = dt;
 
         }
-        private void GetCity(string urlValue)
+        private async Task GetCity(string urlValue)
         {
-            string url = "https://apps.allianzworldwidecare.com/poi/" +HttpUtility.HtmlDecode( urlValue);
+            string url = "https://apps.allianzworldwidecare.com/poi/" + HttpUtility.HtmlDecode(urlValue);
 
-           
+
             HtmlAgilityPack.HtmlWeb web = new HtmlAgilityPack.HtmlWeb();
             HtmlAgilityPack.HtmlDocument doc = web.Load(url);
 
-            ddlCity.Items.Clear();
+
 
 
             HtmlAgilityPack.HtmlNode cityNode = doc.DocumentNode.SelectSingleNode("//select[@id='city']");
             var CityList = cityNode.ChildNodes.Where(e => e.Name == "option");
 
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Title", typeof(string));
+            dt.Columns.Add("Value", typeof(string));
+
             foreach (var city in CityList)
             {
 
-                ddlCity.Items.Add(city.InnerText);
+                dt.Rows.Add(city.InnerText, city.InnerText);
             }
+            ddlCity.DisplayMember = "Title";
+            ddlCity.ValueMember = "Value";
+            ddlCity.DataSource = dt;
             ddlCity.SelectedIndex = 0;
 
         }
 
-        private void ddlCountry_SelectedIndexChanged(object sender, EventArgs e)
+        private async void ddlCountry_SelectedIndexChanged(object sender, EventArgs e)
         {
             var url = ddlCountry.SelectedValue;
-            GetCity(url.ToString());
+            await GetCity(url.ToString());
 
 
         }
+
     }
 }
